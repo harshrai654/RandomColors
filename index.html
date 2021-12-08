@@ -1,0 +1,118 @@
+<main id="container"></main>
+<canvas id="myChart" width="400" height="400"></canvas>
+
+<style>
+	* {
+		box-sizing: border-box;
+	}
+	.box {
+		display: inline-block;
+		width: 16px;
+		height: 16px;
+		padding: 5px;
+		border: 1px solid;
+		margin: 1px;
+	}
+</style>
+<script src="chart.min.js"></script>
+
+<script>
+	(function fillUpBoxes() {
+		for (let i = 0; i < 1000; i++) {
+			const container = document.getElementById("container");
+			const bulb = document.createElement("div");
+			container.appendChild(bulb);
+			bulb.className = "box";
+		}
+	})();
+
+	const bulbs = Array.from(document.getElementsByClassName("box"));
+	const colorCount = new Map();
+	const ctx = document.getElementById("myChart").getContext("2d");
+	let rgbArray = Array.from(colorCount.keys());
+	let rgbCountArray = Array.from(colorCount.values());
+
+	const myChart = new Chart(ctx, {
+		type: "polarArea",
+		data: {
+			labels: rgbArray,
+			datasets: [
+				{
+					label: "Color Frequency",
+					data: rgbCountArray,
+					backgroundColor: rgbArray,
+					borderColor: rgbArray,
+					borderWidth: 1,
+				},
+			],
+		},
+		options: {
+			scales: {
+				y: {
+					beginAtZero: true,
+				},
+			},
+			animation: {
+				duration: 0,
+			},
+		},
+	});
+
+	function getColorRange() {
+		const random = Math.floor(Math.random() * 256);
+		return parseInt(random / 60) * 60;
+	}
+
+	function changeColor() {
+		bulbs.forEach((bulb) => {
+			const backColor = {
+				r: getColorRange(),
+				g: getColorRange(),
+				b: getColorRange(),
+			};
+
+			const borderColor = {
+				r: getColorRange(),
+				g: getColorRange(),
+				b: getColorRange(),
+			};
+
+			const rgbString1 = `rgb(${backColor.r}, ${backColor.g}, ${backColor.b})`;
+			const rgbString2 = `rgb(${borderColor.r}, ${borderColor.g}, ${borderColor.b})`;
+
+			bulb.style.backgroundColor = rgbString1;
+			bulb.style.borderColor = rgbString2;
+
+			if (colorCount.has(rgbString1)) {
+				const prvsCount = colorCount.get(rgbString1);
+				colorCount.set(rgbString1, prvsCount + 1);
+			} else {
+				colorCount.set(rgbString1, 1);
+			}
+
+			if (colorCount.has(rgbString2)) {
+				const prvsCount = colorCount.get(rgbString2);
+				colorCount.set(rgbString2, prvsCount + 1);
+			} else {
+				colorCount.set(rgbString2, 1);
+			}
+		});
+
+		rgbArray = Array.from(colorCount.keys());
+		rgbCountArray = Array.from(colorCount.values());
+
+		myChart.data.labels = rgbArray;
+
+		myChart.data.datasets[0] = {
+			label: "Color Frequency",
+			data: rgbCountArray,
+			backgroundColor: rgbArray,
+			borderColor: rgbArray,
+			borderWidth: 1,
+		};
+
+		myChart.update();
+	}
+
+	setInterval(changeColor, 500);
+</script>
